@@ -1,0 +1,37 @@
+name: my-docker-project
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: my-postgres-container
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  django_app:
+    build: .
+    image: my-app-image
+    container_name: my-app-container
+    command: /home/user/web/entrypoint.sh
+    depends_on:
+      - postgres
+
+  nginx:
+    build: ./nginx
+    image: my-nginx-image
+    container_name: my-nginx-container
+    ports:
+      - "80:80"
+    depends_on:
+      - django_app
+
+volumes:
+  postgres_data:
